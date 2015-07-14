@@ -17,11 +17,8 @@ class toggl extends SlackServicePlugin {
 
 		try {
 			list($duration, $description) = $this->parseInput($req['post']['text']);
-			$success = $this->createTimeEntry($duration, $description);
-			if ($success)
-				$this->postSuccess($req['post']['channel_id']);
-			else
-				$this->postError('Unable to create time entry.', $req['post']['channel_id']);
+			$this->createTimeEntry($duration, $description);
+			$this->postSuccess($req['post']['channel_id']);
 		} catch (Exception $e) {
 			$this->postError($e->getMessage(), $req['post']['channel_id']);
 		}
@@ -92,8 +89,6 @@ class toggl extends SlackServicePlugin {
 
 		// There was an error
 		if ($info['http_code'] != 200)
-			return false;
-
-		return true;
+			throw new Exception('Unable to create time entry.');
 	}
 }
