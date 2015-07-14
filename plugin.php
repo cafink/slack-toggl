@@ -33,6 +33,8 @@ class toggl extends SlackServicePlugin {
 		// 3 pieces required: trigger, duration, and description
 		if (count($words) < 3)
 			throw new Exception('Duration or description not provided.');
+		elseif (!ctype_digit ($words[1]))
+			throw new Exception('Duration must be an integer.');
 
 		return array($words[1], $words[2]);
 	}
