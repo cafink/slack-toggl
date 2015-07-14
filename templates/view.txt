@@ -1,0 +1,5 @@
+<h3>Toggl service</h3>
+
+<p>URL to use for the inbound hook: <code>{$this->getHookUrl()}</code></p>
+
+<!--<p><a href="{$this->getEditUrl()}" class="btn">Edit settings</a></p>-->
