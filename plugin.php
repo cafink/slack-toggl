@@ -6,7 +6,7 @@ class toggl extends SlackServicePlugin {
 	public $desc = "Log your day's time via Slack commands.";
 	public $cfg = array('has_token' => true);
 
-	private $botname = 'togglebot';
+	private $botname = 'togglbot';
 	private $toggl_userpass = '{api_token}:api_token';
 
 	function onView () {
