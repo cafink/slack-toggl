@@ -57,37 +57,39 @@ class toggl extends SlackServicePlugin {
 	}
 
 	private function createTimeEntry ($duration, $description) {
-
-		$data = array(
+		return $this->sendRequest('time_entries', array(
 			'time_entry' => array(
 				'description' => $description,
 				'duration' => $duration,
 				'start' => date('c'), // ISO 8601
 				'created_with' => 'Slack'
 			)
-		);
+		));
+	}
 
-		$data_json = json_encode($data);
+	private function sendRequest ($url, $params) {
+
+		$data = json_encode($params);
 
 		$headers = array(
 			'Content-Type: application/json',
-			'Content-Length: ' . strlen($data_json),
+			'Content-Length: ' . strlen($data),
 			'Authorization: Basic ' . base64_encode($this->toggl_userpass),
 		);
 
 		$curl = curl_init();
 
 		curl_setopt_array($curl, array(
-			CURLOPT_URL => 'https://www.toggl.com/api/v8/time_entries',
+			CURLOPT_URL => "https://www.toggl.com/api/v8/{$url}",
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
 			CURLOPT_USERPWD => $this->toggl_userpass,
 			CURLOPT_HTTPHEADER => $headers,
 			CURLOPT_CAINFO => __DIR__ . '/cacert.pem', // Bundle of CA Root Certificates
-			CURLOPT_POSTFIELDS => $data_json
+			CURLOPT_POSTFIELDS => $data
 		));
 
-		curl_exec($curl);
+		$results = curl_exec($curl);
 		$info = curl_getinfo($curl);
 		//$error = curl_error($curl);
 
@@ -96,5 +98,7 @@ class toggl extends SlackServicePlugin {
 		// There was an error
 		if ($info['http_code'] != 200)
 			throw new Exception('Unable to create time entry.');
+
+		return $results;
 	}
 }
