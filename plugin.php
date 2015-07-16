@@ -6,8 +6,9 @@ class toggl extends SlackServicePlugin {
 	public $desc = "Log your day's time via Slack commands.";
 	public $cfg = array('has_token' => true);
 
-	private $botname = 'togglbot';
+	private $toggl_url = 'https://www.toggl.com/api/v8/';
 	private $toggl_userpass = '{api_token}:api_token';
+	private $botname = 'togglbot';
 
 	function onView () {
 		return $this->smarty->fetch('view.txt');
@@ -67,7 +68,7 @@ class toggl extends SlackServicePlugin {
 		));
 	}
 
-	private function sendRequest ($url, $params) {
+	private function sendRequest ($request_url, $params) {
 
 		$data = json_encode($params);
 
@@ -80,7 +81,7 @@ class toggl extends SlackServicePlugin {
 		$curl = curl_init();
 
 		curl_setopt_array($curl, array(
-			CURLOPT_URL => "https://www.toggl.com/api/v8/{$url}",
+			CURLOPT_URL => $this->toggl_url . $request_url,
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
 			CURLOPT_USERPWD => $this->toggl_userpass,
