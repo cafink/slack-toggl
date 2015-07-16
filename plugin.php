@@ -16,7 +16,8 @@ class toggl extends SlackServicePlugin {
 	function onHook ($req) {
 
 		try {
-			list($duration, $description) = $this->parseInput($req['post']['text']);
+			$command = $this->removeTrigger($req['post']['text'], $req['post']['trigger_word']);
+			list($duration, $description) = $this->parseCommand($command);
 			$this->createTimeEntry($duration, $description);
 			$this->postSuccess($req['post']['channel_id']);
 		} catch (Exception $e) {
@@ -24,16 +25,21 @@ class toggl extends SlackServicePlugin {
 		}
 	}
 
-	private function parseInput ($input) {
-		$words = explode(' ', $input, 3);
+	private function removeTrigger ($input, $trigger) {
+		return trim(substr($input, strlen($trigger)));
+	}
 
-		// 3 pieces required: trigger, duration, and description
-		if (count($words) < 3)
+	private function parseCommand ($input) {
+
+		$words = explode(' ', $input, 2);
+
+		// 2 pieces required: duration, and description
+		if (count($words) < 2)
 			throw new Exception('Duration or description not provided.');
-		elseif (!ctype_digit ($words[1]))
+		elseif (!ctype_digit ($words[0]))
 			throw new Exception('Duration must be an integer.');
 
-		return array($words[1], $words[2]);
+		return array($words[0], $words[1]);
 	}
 
 	private function postError ($message, $channel) {
