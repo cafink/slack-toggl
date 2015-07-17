@@ -1,6 +1,6 @@
 # Slack-Toggl
 
-[Hammock](http://github.com/tinyspeck/hammock) plugin for Toggl integration service in Slack.
+[Hammock](http://github.com/tinyspeck/hammock) plugin for [Toggl](http://toggl.com) integration service in [Slack](http://slack.com).
 
 ## How to install
 
