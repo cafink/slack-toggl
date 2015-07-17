@@ -10,6 +10,8 @@ class toggl extends SlackServicePlugin {
 	private $toggl_userpass = '{api_token}:api_token';
 	private $botname = 'togglbot';
 
+	private $commands = array('create');
+
 	function onView () {
 		return $this->smarty->fetch('view.txt');
 	}
@@ -17,10 +19,15 @@ class toggl extends SlackServicePlugin {
 	function onHook ($req) {
 
 		try {
-			$command = $this->removeTrigger($req['post']['text'], $req['post']['trigger_word']);
-			list($duration, $description) = $this->parseCommand($command);
-			$this->createTimeEntry($duration, $description);
-			$this->postSuccess($req['post']['channel_id']);
+			$full_command = $this->removeTrigger($req['post']['text'], $req['post']['trigger_word']);
+			list($command, $args) = $this->parseCommand($full_command);
+
+			if (in_array($command, $this->commands)) {
+				call_user_func(array($this, "{$command}TimeEntry"), $args);
+				$this->postSuccess($req['post']['channel_id']);
+			} else {
+				$this->postError("Command \"{$command}\" not recognized.", $req['post']['channel_id']);
+			}
 		} catch (Exception $e) {
 			$this->postError($e->getMessage(), $req['post']['channel_id']);
 		}
@@ -32,13 +39,11 @@ class toggl extends SlackServicePlugin {
 
 	private function parseCommand ($input) {
 
-		$words = explode(' ', $input, 2);
+		if (empty($input))
+			throw new Exception('No command specified.');
 
-		// 2 pieces required: duration, and description
-		if (count($words) < 2)
-			throw new Exception('Duration or description not provided.');
-		elseif (!ctype_digit ($words[0]))
-			throw new Exception('Duration must be an integer.');
+		// 2 pieces: command and arguments
+		$words = explode(' ', $input, 2);
 
 		return array($words[0], $words[1]);
 	}
@@ -57,7 +62,24 @@ class toggl extends SlackServicePlugin {
 		));
 	}
 
-	private function createTimeEntry ($duration, $description) {
+	private function parseCreateArgs ($args) {
+
+		if (empty($args))
+			throw new Exception('Duration must be supplied.');
+
+		// First "word" is duration; remainder is description
+		$args = explode(' ', $args, 2);
+
+		if (!ctype_digit ($args[0]))
+			throw new Exception('Duration must be an integer.');
+
+		return $args;
+	}
+
+	private function createTimeEntry ($args) {
+
+		list($duration, $description) = $this->parseCreateArgs($args);
+
 		return $this->sendRequest('time_entries', array(
 			'time_entry' => array(
 				'description' => $description,
