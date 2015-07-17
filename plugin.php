@@ -11,7 +11,7 @@ class toggl extends SlackServicePlugin {
 	private $channel = '#general';
 	private $botname = 'togglbot';
 
-	private $commands = array('create', 'start');
+	private $commands = array('create', 'start', 'stop');
 
 	function onView () {
 		return $this->smarty->fetch('view.txt');
@@ -106,7 +106,16 @@ class toggl extends SlackServicePlugin {
 		$this->postSuccess('Time entry started succesfully. ID: ' . $id);
 	}
 
-	private function sendRequest ($request_url, $params) {
+	private function stopTimeEntry ($args) {
+
+		if (empty($args))
+			throw new Exception('Time entry ID not provided.');
+
+		$this->sendRequest("time_entries/{$args}/stop", array(), 'PUT');
+		$this->postSuccess("Time entry {$args} stopped succesfully.");
+	}
+
+	private function sendRequest ($request_url, $params = array(), $method = 'POST') {
 
 		$data = json_encode($params);
 
@@ -125,6 +134,7 @@ class toggl extends SlackServicePlugin {
 			CURLOPT_USERPWD => $this->toggl_userpass,
 			CURLOPT_HTTPHEADER => $headers,
 			CURLOPT_CAINFO => __DIR__ . '/cacert.pem', // Bundle of CA Root Certificates
+			CURLOPT_CUSTOMREQUEST => $method,
 			CURLOPT_POSTFIELDS => $data
 		));
 
