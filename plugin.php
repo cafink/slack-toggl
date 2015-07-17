@@ -11,7 +11,7 @@ class toggl extends SlackServicePlugin {
 	private $channel = '#general';
 	private $botname = 'togglbot';
 
-	private $commands = array('create');
+	private $commands = array('create', 'start');
 
 	function onView () {
 		return $this->smarty->fetch('view.txt');
@@ -58,8 +58,8 @@ class toggl extends SlackServicePlugin {
 		));
 	}
 
-	private function postSuccess () {
-		$this->postToChannel('Time entry created successfully.', array(
+	private function postSuccess ($messsage = 'Success!') {
+		$this->postToChannel($msg, array(
 			'channel' => $this->channel,
 			'username' => $this->botname
 		));
@@ -88,6 +88,15 @@ class toggl extends SlackServicePlugin {
 				'description' => $description,
 				'duration' => $duration,
 				'start' => date('c'), // ISO 8601
+				'created_with' => 'Slack'
+			)
+		));
+	}
+
+	private function startTimeEntry ($args) {
+		return $this->sendRequest('time_entries/start', array(
+			'time_entry' => array(
+				'description' => $args,
 				'created_with' => 'Slack'
 			)
 		));
@@ -123,7 +132,7 @@ class toggl extends SlackServicePlugin {
 
 		// There was an error
 		if ($info['http_code'] != 200)
-			throw new Exception('Unable to create time entry.');
+			throw new Exception('Request not successful.');
 
 		return $results;
 	}
