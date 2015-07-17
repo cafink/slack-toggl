@@ -75,7 +75,7 @@ class toggl extends SlackServicePlugin {
 		$headers = array(
 			'Content-Type: application/json',
 			'Content-Length: ' . strlen($data),
-			'Authorization: Basic ' . base64_encode($this->toggl_userpass),
+			'Authorization: Basic ' . base64_encode($this->toggl_userpass)
 		);
 
 		$curl = curl_init();
