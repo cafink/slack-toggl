@@ -25,12 +25,10 @@ class toggl extends SlackServicePlugin {
 			$full_command = $this->removeTrigger($req['post']['text'], $req['post']['trigger_word']);
 			list($command, $args) = $this->parseCommand($full_command);
 
-			if (in_array($command, $this->commands)) {
+			if (in_array($command, $this->commands))
 				call_user_func(array($this, "{$command}TimeEntry"), $args);
-				$this->postSuccess();
-			} else {
+			else
 				$this->postError("Command \"{$command}\" not recognized.");
-			}
 		} catch (Exception $e) {
 			$this->postError($e->getMessage());
 		}
@@ -58,8 +56,8 @@ class toggl extends SlackServicePlugin {
 		));
 	}
 
-	private function postSuccess ($messsage = 'Success!') {
-		$this->postToChannel($msg, array(
+	private function postSuccess ($message = 'Success!') {
+		$this->postToChannel($message, array(
 			'channel' => $this->channel,
 			'username' => $this->botname
 		));
@@ -83,7 +81,7 @@ class toggl extends SlackServicePlugin {
 
 		list($duration, $description) = $this->parseCreateArgs($args);
 
-		return $this->sendRequest('time_entries', array(
+		$this->sendRequest('time_entries', array(
 			'time_entry' => array(
 				'description' => $description,
 				'duration' => $duration,
@@ -91,15 +89,21 @@ class toggl extends SlackServicePlugin {
 				'created_with' => 'Slack'
 			)
 		));
+
+		$this->postSuccess('Time entry created successfully.');
 	}
 
 	private function startTimeEntry ($args) {
-		return $this->sendRequest('time_entries/start', array(
+		$results = $this->sendRequest('time_entries/start', array(
 			'time_entry' => array(
 				'description' => $args,
 				'created_with' => 'Slack'
 			)
 		));
+
+		$id = json_decode($results)->data->id;
+
+		$this->postSuccess('Time entry started succesfully. ID: ' . $id);
 	}
 
 	private function sendRequest ($request_url, $params) {
