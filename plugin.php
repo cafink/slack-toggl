@@ -8,6 +8,7 @@ class toggl extends SlackServicePlugin {
 
 	private $toggl_url = 'https://www.toggl.com/api/v8/';
 	private $toggl_userpass = '{api_token}:api_token';
+	private $channel = '#general';
 	private $botname = 'togglbot';
 
 	private $commands = array('create');
@@ -18,18 +19,20 @@ class toggl extends SlackServicePlugin {
 
 	function onHook ($req) {
 
+		$this->channel = $req['post']['channel_id'];
+
 		try {
 			$full_command = $this->removeTrigger($req['post']['text'], $req['post']['trigger_word']);
 			list($command, $args) = $this->parseCommand($full_command);
 
 			if (in_array($command, $this->commands)) {
 				call_user_func(array($this, "{$command}TimeEntry"), $args);
-				$this->postSuccess($req['post']['channel_id']);
+				$this->postSuccess();
 			} else {
-				$this->postError("Command \"{$command}\" not recognized.", $req['post']['channel_id']);
+				$this->postError("Command \"{$command}\" not recognized.");
 			}
 		} catch (Exception $e) {
-			$this->postError($e->getMessage(), $req['post']['channel_id']);
+			$this->postError($e->getMessage());
 		}
 	}
 
@@ -48,16 +51,16 @@ class toggl extends SlackServicePlugin {
 		return array($words[0], $words[1]);
 	}
 
-	private function postError ($message, $channel) {
+	private function postError ($message) {
 		$this->postToChannel('Error: ' . $message, array(
-			'channel' => $channel,
+			'channel' => $this->channel,
 			'username' => $this->botname
 		));
 	}
 
-	private function postSuccess ($channel) {
+	private function postSuccess () {
 		$this->postToChannel('Time entry created successfully.', array(
-			'channel' => $channel,
+			'channel' => $this->channel,
 			'username' => $this->botname
 		));
 	}
